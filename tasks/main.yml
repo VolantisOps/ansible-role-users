@@ -1,0 +1,61 @@
+- name: Delete old user home directories
+  file:
+    path: "~{{ item }}"
+    state: absent
+  with_items: "{{ users_remove }}"
+
+- name: Remove old users
+  user: name={{ item }} state=absent
+  with_items: "{{ users_remove }}"
+
+- name: Set up groups
+  group:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ users_groups }}"
+
+- name: Add custom users
+  user: "name={{ item.name }} append=true groups={{ item.groups }} password={{ item.password }}"
+  with_items: "{{ users }}"
+
+- name: Ensure home directories exist
+  file:
+    path: ~{{ item.name }}/
+    state: directory
+    owner: "{{ item.name }}"
+    group: "{{item.name }}"
+    mode: 0700
+  with_items: "{{ users }}"
+
+- name: Ensure .ssh directory exists
+  file:
+    path: "~{{ item.name }}/.ssh"
+    state: directory
+    owner: "{{ item.name }}"
+    group: "{{ item.name }}"
+    mode: 0700
+  with_items: "{{ users }}"
+
+- name: Add github public keys to authorized_key
+  authorized_key: "user={{ item.name }} key=https://github.com/{{ gh_pubkey_user }}.keys"
+  when: item.github_username is defined and item.github_username != ''"
+  with_items: "{{ users }}"
+
+- name: Copy private key files
+  copy:
+    content: "{{ item.private_key }}"
+    dest: "~{{ item.name }}/.ssh/id_rsa"
+    owner: "{{ item.name }}"
+    group: "{{ item.name }}"
+    mode: 0600
+  when: "item.private_key is defined and item.private_key != ''"
+  with_items: "{{ users_keys }}"
+
+- name: Copy public key files
+  copy:
+    content: "{{ item.public_key }}"
+    dest: "~{{ item.name }}/.ssh/id_rsa.pub"
+    owner: "{{ item.name }}"
+    group: "{{ item.name }}"
+  when: "item.public_key is defined and item.public_key != ''"
+  with_items: "{{ users_keys }}"

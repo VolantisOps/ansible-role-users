@@ -1,0 +1,17 @@
+---
+users: []
+#  - name: username
+#    password: 'hashed-password'
+#    groups: wheel
+#    github_username: bmcclure
+users_keys: []
+#  - name: username
+#    private_key: |
+#      -----BEGIN RSA PRIVATE KEY-----
+#      private key
+#      -----END RSA PRIVATE KEY-----
+#    public_key: public key
+users_groups:
+  - wheel
+users_remove:
+  - alarm
