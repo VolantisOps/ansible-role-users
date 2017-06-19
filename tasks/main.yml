@@ -38,7 +38,7 @@
 
 - name: Add github public keys to authorized_key
   authorized_key: "user={{ item.name }} key=https://github.com/{{ gh_pubkey_user }}.keys"
-  when: item.github_username is defined and item.github_username != ''"
+  when: "item.github_username is defined and item.github_username != ''"
   with_items: "{{ users }}"
 
 - name: Copy private key files
